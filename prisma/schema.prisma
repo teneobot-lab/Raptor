@@ -6,32 +6,49 @@ datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String
   password  String
   role      String   @default("CASHIER")
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   transactions Transaction[]
+  shifts    Shift[]
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  color     String    @default("#6366f1")
+  createdAt DateTime  @default(now())
+
 }
 
 model Product {
-  id          String   @id @default(cuid())
-  name        String
-  price       Float
-  stock       Int      @default(0)
-  barcode     String   @unique
-  category    String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(cuid())
+  name         String
+  price        Float
+  cost         Float    @default(0)
+  stock        Int      @default(0)
+  minStock     Int      @default(5)
+  barcode      String   @unique
+  category     String
 
+  imageUrl     String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
   transactionItems TransactionItem[]
+  stockMovements   StockMovement[]
 }
 
 model Transaction {
   id            String   @id @default(cuid())
+  invoiceNo     String   @unique
   subtotal      Float
   tax           Float
   discount      Float    @default(0)
@@ -39,11 +56,13 @@ model Transaction {
   amountPaid    Float
   change        Float
   paymentMethod String
+  notes         String?
+  status        String   @default("COMPLETED")
   createdAt     DateTime @default(now())
-  
   cashierId     String
   cashier       User     @relation(fields: [cashierId], references: [id])
-  
+  shiftId       String?
+  shift         Shift?   @relation(fields: [shiftId], references: [id])
   items         TransactionItem[]
 }
 
@@ -51,11 +70,33 @@ model TransactionItem {
   id            String   @id @default(cuid())
   transactionId String
   transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
-  
   productId     String?
   product       Product?    @relation(fields: [productId], references: [id], onDelete: SetNull)
   productName   String
   price         Float
   quantity      Int
   subtotal      Float
+}
+
+model StockMovement {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  type      String   // IN, OUT, ADJUSTMENT
+  quantity  Int
+  notes     String?
+  createdAt DateTime @default(now())
+  createdBy String
+}
+
+model Shift {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  openingCash  Float    @default(0)
+  closingCash  Float?
+  status       String   @default("OPEN")
+  openedAt     DateTime @default(now())
+  closedAt     DateTime?
+  transactions Transaction[]
 }
