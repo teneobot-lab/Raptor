@@ -41,7 +41,7 @@ export function UsersClient({ users: initial }: { users: UserType[] }) {
         toast.success('User created');
       } else if (selected) {
         const u = await updateUser(selected.id, form as any);
-        setUsers(prev => prev.map(x => x.id === selected.id ? { ...x, ...u } : x));
+        setUsers(prev => prev.map(x => x.id === selected.id ? { ...x, ...u, createdAt: x.createdAt } : x));
         toast.success('User updated');
       }
       setModal(null);
