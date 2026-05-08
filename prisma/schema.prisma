@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      String   @default("CASHIER")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  transactions Transaction[]
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  price       Float
+  stock       Int      @default(0)
+  barcode     String   @unique
+  category    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  transactionItems TransactionItem[]
+}
+
+model Transaction {
+  id            String   @id @default(cuid())
+  subtotal      Float
+  tax           Float
+  discount      Float    @default(0)
+  total         Float
+  amountPaid    Float
+  change        Float
+  paymentMethod String
+  createdAt     DateTime @default(now())
+  
+  cashierId     String
+  cashier       User     @relation(fields: [cashierId], references: [id])
+  
+  items         TransactionItem[]
+}
+
+model TransactionItem {
+  id            String   @id @default(cuid())
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  
+  productId     String?
+  product       Product?    @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productName   String
+  price         Float
+  quantity      Int
+  subtotal      Float
+}

@@ -1,0 +1,6 @@
+{
+  "name": "NodePOS",
+  "description": "Professional Point of Sale (POS) application with Dashboard, Checkout window, and Product Management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
